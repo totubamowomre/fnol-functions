@@ -1,41 +1,61 @@
-import { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import { app, output, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { v4 as uuidv4 } from 'uuid';
 
-interface BindingContext extends InvocationContext {
-    bindings: { [key: string]: any };
+
+const tableOutput = output.table({
+    tableName: 'fnoldatatable',
+    connection: 'AzureWebJobsStorage',
+});
+
+export interface FnolEntity {
+    partitionKey: string;
+    rowKey: string;
+    data: IFnolData;
 }
 
-interface FnolEntity {
-    PartitionKey: string;
-    RowKey: string;
-    Data: IFnolData;
-}
-
-interface IFnolData {
+export interface IFnolData {
     reporter: {
-        firstname: string,
-        lastname: string
+        firstName: string,
+        lastName: string
     },
     policy: {
         policyNumber: string
     },
     loss: {
         lossDate: string
-    }
+    },
+    blobLink: string
 }
 
-export async function create(context: InvocationContext, request: HttpRequest): Promise<HttpResponseInit> {
-    const payload = parsePayload(request.body);
-    if (payload) {
-        const payload: IFnolData = request.body as unknown as IFnolData;
+// This is a basic validation, extend with more comprehensive checks with a library
+function parsePayload(body: any): IFnolData | null {
+    if (
+        body &&
+        body.reporter &&
+        body.reporter.firstName &&
+        body.reporter.lastName &&
+        body.policy &&
+        body.policy.policyNumber &&
+        body.loss &&
+        body.loss.lossDate
+    ) {
+        return body as IFnolData;
+    }
+    return null;
+}
+
+export async function create(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+    context.log(`Http function processed request for url "${request.url}"`);
+
+    const data = parsePayload((await request.json()) || null);
+    if (data) {
         const fnol: FnolEntity = {
-            PartitionKey: new Date().toDateString(),
-            RowKey: uuidv4(),
-            Data: payload,
+            partitionKey: new Date().toDateString(),
+            rowKey: uuidv4(),
+            data: data,
         };
 
-        const bindings = (context as BindingContext).bindings;
-        context.extraOutputs.set(bindings.tableOutput, fnol);
+        context.extraOutputs.set(tableOutput, fnol);
 
         return {
             status: 201,
@@ -52,19 +72,8 @@ export async function create(context: InvocationContext, request: HttpRequest): 
 
 };
 
-// This is a basic validation, extend with more comprehensive checks with a library
-function parsePayload(body: any): IFnolData | null {
-    if (
-        body &&
-        body.reporter &&
-        body.reporter.firstname &&
-        body.reporter.lastname &&
-        body.policy &&
-        body.policy.policyNumber &&
-        body.loss &&
-        body.loss.lossDate
-    ) {
-        return body as IFnolData;
-    }
-    return null;
-}
+app.http('create', {
+    methods: ['POST'],
+    extraOutputs: [tableOutput],
+    handler: create
+});
