@@ -1,9 +1,10 @@
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import { name, version } from '../../../package.json';
 
-import { name, version } from '../../package.json';
 function isObject(v) {
     return '[object Object]' === Object.prototype.toString.call(v);
 };
+
 function sortJson(o): Record<string, any> {
     if (Array.isArray(o)) {
         return o.sort().map(sortJson);
@@ -20,7 +21,7 @@ function sortJson(o): Record<string, any> {
     return o;
 }
 
-export async function status(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function status(context: InvocationContext, request: HttpRequest): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
     const sortedEnv = sortJson(process.env);
@@ -35,10 +36,3 @@ export async function status(request: HttpRequest, context: InvocationContext): 
         }
     };
 };
-
-app.http('status', {
-    route: "status",
-    methods: ['GET'],
-    authLevel: 'anonymous',
-    handler: status
-});

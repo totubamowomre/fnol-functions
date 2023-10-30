@@ -46,7 +46,7 @@ describe('Test endpoint', () => {
     };
     const context: InvocationContext = new InvocationContext(contextInit);
     const request: HttpRequest = new HttpRequest(httpRequestInit);
-    const response = await status(request, context);
+    const response = await status(context, request);
 
     expect(response.status).toBe(200);
     expect(response.jsonBody.env).toHaveProperty('NODE_ENV', MOCKED_NODE_ENV);

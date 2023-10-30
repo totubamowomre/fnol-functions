@@ -1,0 +1,26 @@
+{
+    "bindings": [
+      {
+        "authLevel": "anonymous",
+        "type": "httpTrigger",
+        "direction": "in",
+        "name": "req",
+        "methods": ["post"],
+        "route": "create"
+      },
+      {
+        "type": "http",
+        "direction": "out",
+        "name": "$return"
+      },
+      {
+        "type": "table",
+        "direction": "out",
+        "name": "tableOutput",
+        "tableName": "fnoldatatable",
+        "connection": "AzureWebJobsStorage"
+      }
+    ],
+    "scriptFile": "../dist/create/index.js"
+  }
+  
