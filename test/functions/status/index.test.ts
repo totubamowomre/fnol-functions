@@ -1,5 +1,5 @@
 import { HttpRequest } from '@azure/functions';
-import { status } from '../../src/functions/status';
+import { status } from '../../../src/functions/status';
 import { InvocationContext, InvocationContextInit, HttpRequestInit } from '@azure/functions';
 
 import * as dotenv from 'dotenv'
