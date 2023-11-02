@@ -12,7 +12,7 @@ export async function update(request: HttpRequest, context: InvocationContext): 
   try {
     const fnol = (await request.json()) || null;
     if (fnol) {
-      const fnolEntity = await serviceClient.getEntity<FnolEntity>(new Date().toDateString(), request.params.id);
+      const fnolEntity = await serviceClient.getEntity<FnolEntity>(new Date().toISOString().split('T')[0], request.params.id);
       if (fnolEntity && fnolEntity.partitionKey && fnolEntity.rowKey) {
         await serviceClient.updateEntity({
           partitionKey: fnolEntity.partitionKey,

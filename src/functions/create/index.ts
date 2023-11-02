@@ -14,7 +14,7 @@ export async function create(request: HttpRequest, context: InvocationContext): 
     const fnol = (await request.json()) || null;
     if (fnol) {
       const fnolEntity: FnolEntity = {
-        PartitionKey: new Date().toDateString(),
+        PartitionKey: new Date().toISOString().split('T')[0],
         RowKey: uuidv4(),
         Data: JSON.stringify(fnol),
         Status: 'New',
