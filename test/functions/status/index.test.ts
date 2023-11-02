@@ -1,12 +1,10 @@
 import { HttpRequest } from '@azure/functions';
 import { status } from '../../../src/functions/status';
 import { InvocationContext, InvocationContextInit, HttpRequestInit } from '@azure/functions';
-
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 describe('Test endpoint', () => {
-
   const originalEnv = process.env;
   const MOCKED_NODE_ENV = 'jest-mock-node-env';
 
@@ -22,27 +20,25 @@ describe('Test endpoint', () => {
   });
 
   it('should return 200 with mocked environment variable', async () => {
-
-    const contextInit: InvocationContextInit ={
-        invocationId: '1',
-        functionName: 'status',
-        logHandler: jest.fn(),
-        traceContext: {},
-        retryContext: {
-            retryCount: 0,
-            maxRetryCount: 0,
-            exception: undefined
-        },
-        triggerMetadata: {}
-
+    const contextInit: InvocationContextInit = {
+      invocationId: '1',
+      functionName: 'status',
+      logHandler: jest.fn(),
+      traceContext: {},
+      retryContext: {
+        retryCount: 0,
+        maxRetryCount: 0,
+        exception: undefined,
+      },
+      triggerMetadata: {},
     };
     const httpRequestInit: HttpRequestInit = {
-      method: "GET",
-      url: "http://localhost:7071/status",
+      method: 'GET',
+      url: 'http://localhost:7071/status',
       body: undefined,
       headers: {},
       query: {},
-      params: {}    
+      params: {},
     };
     const context: InvocationContext = new InvocationContext(contextInit);
     const request: HttpRequest = new HttpRequest(httpRequestInit);

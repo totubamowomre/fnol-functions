@@ -1,14 +1,17 @@
 {
-  "compilerOptions": {
-    "forceConsistentCasingInFileNames": true,
-    "module": "commonjs",
-    "target": "es6",
-    "outDir": "dist",
-    "rootDir": ".",
-    "strict": true,
-    "sourceMap": true,
-    "noImplicitAny": false,
-    "resolveJsonModule": true
-  },
-  "include": ["src/**/*", "test/**/*"]
+    "compilerOptions": {
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "target": "es6",
+        "outDir": "dist",
+        "rootDir": ".",
+        "strict": true,
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "resolveJsonModule": true
+    },
+    "include": [
+        "src/**/*",
+        "test/**/*"
+    ]
 }

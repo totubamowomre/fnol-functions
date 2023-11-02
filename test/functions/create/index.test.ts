@@ -1,11 +1,11 @@
-import { HttpRequest, InvocationContext } from "@azure/functions";
+import { HttpRequest, InvocationContext } from '@azure/functions';
 import { v4 as uuidv4 } from 'uuid';
-import { create } from "../../../src/functions/create";
+import { create } from '../../../src/functions/create';
 
 // Mock uuidv4 function
 jest.mock('uuid', () => {
   return {
-    v4: jest.fn()
+    v4: jest.fn(),
   };
 });
 
@@ -17,14 +17,14 @@ describe('create function', () => {
     request = {
       method: 'POST',
       url: 'http://localhost:7071/api/fnol',
-      json: jest.fn()
-    } as any;
+      json: jest.fn(),
+    } as never;
     context = {
       log: jest.fn(),
       extraOutputs: {
-        set: jest.fn()
-      }
-    } as any;
+        set: jest.fn(),
+      },
+    } as never;
 
     (uuidv4 as jest.Mock).mockReturnValue('mocked-uuid');
   });
@@ -33,8 +33,8 @@ describe('create function', () => {
     (request.json as jest.Mock).mockResolvedValueOnce({
       reporter: {
         firtName: 'firtName',
-        lastName: 'lastName'
-      }
+        lastName: 'lastName',
+      },
     });
 
     const response = await create(request, context);
