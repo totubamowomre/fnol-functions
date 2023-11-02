@@ -1,6 +1,29 @@
 import { HttpRequest, InvocationContext } from '@azure/functions';
 import { update } from '../../../src/functions/update';
 
+jest.mock('@azure/data-tables', () => {
+  const mockGetEntity = jest.fn().mockResolvedValue({
+    partitionKey: 'testPartitionKey',
+    rowKey: 'testRowKey',
+    Data: '{}',
+    Status: 'New',
+  });
+  const mockUpdateEntity = jest.fn().mockResolvedValue({});
+
+  const mockTableClientInstance = {
+    getEntity: mockGetEntity,
+    updateEntity: mockUpdateEntity,
+  };
+
+  return {
+    TableClient: {
+      fromConnectionString: jest.fn(() => mockTableClientInstance),
+    },
+  };
+});
+
+import { TableClient } from '@azure/data-tables';
+
 describe('update function', () => {
   let request: HttpRequest;
   let context: InvocationContext;
@@ -14,12 +37,6 @@ describe('update function', () => {
     } as never;
     context = {
       log: jest.fn(),
-      extraInputs: {
-        get: jest.fn(),
-      },
-      extraOutputs: {
-        set: jest.fn(),
-      },
     } as never;
   });
 
@@ -31,24 +48,9 @@ describe('update function', () => {
       },
     });
 
-    const mockResult = [
-      {
-        RowKey: 'mock-id',
-        data: JSON.stringify({
-          reporter: {
-            firtName: 'firtName',
-            lastName: 'lastName',
-          },
-        }),
-      },
-    ];
-
-    (context.extraInputs.get as jest.Mock).mockReturnValueOnce(mockResult);
-
     const response = await update(request, context);
 
     expect(response.status).toBe(200);
-    expect(context.extraOutputs.set).toHaveBeenCalled();
   });
 
   it('should return 404 for invalid request param', async () => {
@@ -59,24 +61,13 @@ describe('update function', () => {
       },
     });
 
-    const mockResult = [
-      {
-        RowKey: 'another-mock-id',
-        data: JSON.stringify({
-          reporter: {
-            firtName: 'firtName',
-            lastName: 'lastName',
-          },
-        }),
-      },
-    ];
+    const mockGetEntity = TableClient.fromConnectionString('', '').getEntity as jest.Mock;
 
-    (context.extraInputs.get as jest.Mock).mockReturnValueOnce(mockResult);
+    mockGetEntity.mockResolvedValueOnce(undefined);
 
     const response = await update(request, context);
 
     expect(response.status).toBe(404);
-    expect(context.extraInputs.get).toHaveBeenCalled();
   });
 
   it('should return 400 for invalid data', async () => {

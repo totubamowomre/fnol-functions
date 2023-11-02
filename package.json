@@ -12,6 +12,7 @@
         "lint:fix": "eslint . --ext .ts --fix"
     },
     "dependencies": {
+        "@azure/data-tables": "^13.2.2",
         "@azure/functions": "4.0.1",
         "dotenv": "^16.0.3",
         "ts-jest": "^29.1.0",

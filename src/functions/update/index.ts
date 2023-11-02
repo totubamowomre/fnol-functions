@@ -1,18 +1,10 @@
-import { app, input, output, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { TableClient } from '@azure/data-tables';
 import { FnolEntity } from '../../models/fnol';
-import { v4 as uuidv4 } from 'uuid';
 
-const tableInput = input.table({
-  tableName: 'fnoldatatable',
-  partitionKey: new Date().toDateString(),
-  rowKey: '{id}',
-  connection: 'AzureWebJobsStorage',
-});
-
-const tableOutput = output.table({
-  tableName: 'fnoldatatable',
-  connection: 'AzureWebJobsStorage',
-});
+const connectionString: string =
+  process.env && process.env['APPSETTING_AzureWebJobsStorage'] ? process.env['APPSETTING_AzureWebJobsStorage'] : 'UseDevelopmentStorage=true';
+const serviceClient = TableClient.fromConnectionString(connectionString, 'fnoldatatable');
 
 export async function update(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log(`Http function processed request for url "${request.url}"`);
@@ -20,27 +12,17 @@ export async function update(request: HttpRequest, context: InvocationContext): 
   try {
     const fnol = (await request.json()) || null;
     if (fnol) {
-      const result = context.extraInputs.get(tableInput);
-      context.log('Result : ' + JSON.stringify(result));
-      let fnolEntity: FnolEntity | null = null;
-      if (Array.isArray(result) && result.length > 0) {
-        fnolEntity = result.find((entity) => entity.RowKey === request.params.id) as FnolEntity;
-      }
-      if (fnolEntity) {
-        const fnolEntity: FnolEntity = {
-          PartitionKey: new Date().toDateString(),
-          RowKey: uuidv4(),
+      const fnolEntity = await serviceClient.getEntity<FnolEntity>(new Date().toDateString(), request.params.id);
+      if (fnolEntity && fnolEntity.partitionKey && fnolEntity.rowKey) {
+        await serviceClient.updateEntity({
+          partitionKey: fnolEntity.partitionKey,
+          rowKey: fnolEntity.rowKey,
           Data: JSON.stringify(fnol),
           Status: 'Submitted',
-        };
-
-        context.extraOutputs.set(tableOutput, fnolEntity);
+        });
 
         return {
           status: 200,
-          headers: {
-            Location: `/fnol/${fnolEntity.RowKey}`,
-          },
         };
       }
       return {
@@ -62,6 +44,4 @@ app.http('update', {
   route: 'fnol/{id}',
   handler: update,
   methods: ['PUT'],
-  extraInputs: [tableInput],
-  extraOutputs: [tableOutput],
 });
