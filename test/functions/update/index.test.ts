@@ -37,6 +37,9 @@ describe('update function', () => {
     } as never;
     context = {
       log: jest.fn(),
+      extraOutputs: {
+        set: jest.fn(),
+      },
     } as never;
   });
 

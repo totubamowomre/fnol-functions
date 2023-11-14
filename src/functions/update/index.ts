@@ -1,6 +1,11 @@
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { app, output, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { TableClient } from '@azure/data-tables';
 import { FnolEntity } from '../../models/fnol';
+
+const queueOutput = output.storageQueue({
+  queueName: 'fnolsubmissionqueue',
+  connection: 'AzureWebJobsStorage',
+});
 
 const connectionString: string =
   process.env && process.env['APPSETTING_AzureWebJobsStorage'] ? process.env['APPSETTING_AzureWebJobsStorage'] : 'UseDevelopmentStorage=true';
@@ -19,6 +24,11 @@ export async function update(request: HttpRequest, context: InvocationContext): 
           rowKey: fnolEntity.rowKey,
           Data: JSON.stringify(fnol),
           Status: 'Submitted',
+        });
+
+        context.extraOutputs.set(queueOutput, {
+          partitionKey: fnolEntity.partitionKey,
+          rowKey: fnolEntity.rowKey
         });
 
         return {
@@ -43,5 +53,6 @@ export async function update(request: HttpRequest, context: InvocationContext): 
 app.http('update', {
   route: 'fnol/{id}',
   handler: update,
+  extraOutputs: [queueOutput],
   methods: ['PUT'],
 });
